@@ -79,9 +79,11 @@ function link_dotfiles {
     ln -s $(pwd)/vimrc ~/.vimrc
     ln -s $(pwd)/vimrc.bundles ~/.vimrc.bundles
 
-    echo "Installing oh-my-zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
+    if [ ! -d "~/.oh-my-zsh" ]; then
+        echo "Installing oh-my-zsh"
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    fi
+    
     if [ ! -f "~/.vim/autoload/plug.vim"]; then
         echo "Installing Vim-Plug"
         curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
