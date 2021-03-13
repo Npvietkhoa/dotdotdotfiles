@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # Utils
 function is_installed {
@@ -120,6 +120,7 @@ while test $# -gt 0; do
             zsh
             source ~/.zshrc
             exit
+            ;;
         --backup)
             backup
             exit
