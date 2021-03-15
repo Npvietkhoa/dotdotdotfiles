@@ -11,7 +11,7 @@ function is_installed {
 }
 
 # Install with apt
-# to use: install @software_name @package_name
+# to use: install_with_apt @software_name @package_name
 function install_with_apt() {
     if [ "$(is_installed $2)" == "0" ]; then
         echo "Installing $1"
@@ -52,7 +52,46 @@ function install_ubuntu_based_linux {
 
     install_with_apt "Neovim" neovim
 
+    # Set zsh as default shell
+    chsh -s /usr/bin/zsh root
+}
 
+function install_theme() {
+    # Install Fira Font
+    echo "Installing Fira Font"
+    fonts_dir="${HOME}/.local/share/fonts"
+    if [ ! -d "${fonts_dir}" ]; then
+        echo "mkdir -p $fonts_dir"
+        mkdir -p "${fonts_dir}"
+    else
+        echo "Found fonts dir $fonts_dir"
+    fi
+
+    for type in Bold Light Medium Regular Retina; do
+        file_path="${HOME}/.local/share/fonts/FiraCode-${type}.ttf"
+        file_url="https://github.com/tonsky/FiraCode/blob/master/distr/ttf/FiraCode-${type}.ttf?raw=true"
+        if [ ! -e "${file_path}" ]; then
+            echo "wget -O $file_path $file_url"
+            wget -O "${file_path}" "${file_url}"
+        else
+        echo "Found existing file $file_path"
+        fi;
+    done
+
+    echo "fc-cache -f"
+    fc-cache -f
+
+    # Apply Dracula font to zsh
+    git clone https://github.com/dracula/zsh.git
+    if [ ! -d "/oh-my-zsh"]; then
+        echo "oh-my-zsh has not been installed!"
+        return
+    fi
+    mv zsh/dracula.zsh-theme oh-my-zsh/themes/
+    mv zsh/lib oh-my-zsh/themes/lib
+    rm -rf zsh
+
+    sed -i "s|ZSH_THEME=.*|ZSH_THEME=\"dracula\"|" ~/.zshrc
 }
 
 
@@ -70,7 +109,7 @@ function backup {
   mv ~/.vimrc.bundles ~/$backup_dir/.vimrc.bundles
 }
 
-function link_dotfiles {
+function sync {
     echo "Linking dotfiles"
 
     ln -s $(pwd)/zshrc ~/.zshrc
@@ -79,11 +118,11 @@ function link_dotfiles {
     ln -s $(pwd)/vimrc ~/.vimrc
     ln -s $(pwd)/vimrc.bundles ~/.vimrc.bundles
 
-    if [ ! -d "~/.oh-my-zsh" ]; then
+    if [ ! -d ".oh-my-zsh" ]; then
         echo "Installing oh-my-zsh"
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     fi
-    
+
     if [ ! -f "~/.vim/autoload/plug.vim"]; then
         echo "Installing Vim-Plug"
         curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
@@ -117,18 +156,18 @@ while test $# -gt 0; do
             ;;
         --linux)
             install_ubuntu_based_linux
-            backup
-            link_dotfiles
-            zsh
-            source ~/.zshrc
+            exit
+            ;;
+        --theme)
+            install_theme
             exit
             ;;
         --backup)
             backup
             exit
             ;;
-        --dotfiles)
-            link_dotfiles
+        --sync)
+            sync
             exit;;
     esac
 
